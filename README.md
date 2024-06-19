@@ -2,6 +2,7 @@
 This project involves a comprehensive SQL analysis of a pizza sales dataset, designed to uncover insights into sales trends, customer behavior, and product performance. By leveraging various SQL queries, the project aims to provide actionable intelligence for business decision-making.
 
 # ER Diagram
+![image](https://github.com/Rasmiranjannayak96/Pizza_sales_SQL_Analysis/assets/166718223/27af6493-3709-45d7-b81d-49474f3be66b)
 
 
 # Dataset Description
