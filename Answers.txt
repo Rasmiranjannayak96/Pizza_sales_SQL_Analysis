@@ -1,4 +1,5 @@
-# Q-1 List the top 5 most ordered pizza types along with their quantities.
+Q-1 List the top 5 most ordered pizza types along with their quantities.
+
 select pt.name, count(quantity) order_amount 
 from order_details as od 
 inner join pizzas as p
