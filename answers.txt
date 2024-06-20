@@ -1,0 +1,199 @@
+Pizza Dataset Analysis
+Q-1 List the top 5 most ordered pizza types along with their quantities.
+
+SELECT 
+    pt.name, COUNT(quantity) order_amount
+FROM
+    order_details AS od
+        INNER JOIN
+    pizzas AS p ON od.pizza_id = p.pizza_id
+        INNER JOIN
+    pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
+GROUP BY pt.name
+ORDER BY order_amount DESC
+LIMIT 5;	
+ 
+
+
+Q-2 Calculate the total revenue generated from pizza sales.
+select round(sum(od.quantity*p.price),2) as total_revenue_generated 
+from order_details as od 
+inner  join pizzas as p
+on od.pizza_id=p.pizza_id	
+
+ 
+
+
+Q-3 Write a query to find the total revenue of each pizza category ordered
+SELECT 
+    pt.category AS pizza_category,
+    ROUND(SUM(od.quantity * p.price), 0) AS Total_Revenue
+FROM
+    order_details AS od
+        INNER JOIN
+    pizzas AS p ON od.pizza_id = p.pizza_id
+        INNER JOIN
+    pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
+GROUP BY pt.category
+ORDER BY Total_Quantity_ordered DESC;	
+
+
+ 
+Q-4 Identify the highest-priced pizza.
+SELECT 
+    pt.name, p.price
+FROM
+    pizza_types pt
+        INNER JOIN
+    pizzas p ON pt.pizza_type_id = p.pizza_type_id
+ORDER BY p.price DESC Limit 1;	
+
+ 
+Q-5 Identify the most common pizza size ordered.
+SELECT 
+p.size  AS  'pizza size', 
+SUM(od.quantity)  AS   'ordered amount'
+FROM order_details  as od
+        INNER JOIN
+    pizzas p ON od.pizza_id = p.pizza_id
+GROUP BY p.size
+ORDER BY 'ordered amount' DESC
+LIMIT 1;	
+
+
+ 
+
+Q-6  What is the average price of pizzas in each category?
+SELECT 
+    category, ROUND(AVG(p.price), 2) AS avg_price
+FROM
+    pizza_types pt
+        INNER JOIN
+    pizzas p ON pt.pizza_type_id = p.pizza_type_id
+GROUP BY pt.category
+ORDER BY avg_price DESC;	
+
+ 
+Q-7 Calculate the percentage contribution of each pizza type to total revenue by it's size.
+with cte as
+( 
+SELECT 
+    pt.category AS pizza_category, p.size as pizza_size,
+    ROUND(SUM(od.quantity * p.price), 0) AS Total_revenue
+FROM
+    order_details AS od
+        INNER JOIN
+    pizzas AS p ON od.pizza_id = p.pizza_id
+        INNER JOIN
+    pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
+GROUP BY pt.category,p.size
+ORDER BY pizza_category )
+select *,
+concat(round(total_revenue/(select sum(total_revenue) from cte) *100,2),"%") percentage_contribution 
+from cte
+
+(CTE + Sub Query With Group by and Join)	
+
+
+
+ 
+       
+Q-8 Analyze the cumulative revenue generated over time(month).
+SELECT
+CASE month_no
+WHEN 1 THEN 'January' WHEN 2 THEN 'February 'WHEN 3 THEN 'March'  WHEN 4 THEN 'April'
+WHEN 5 THEN 'May' WHEN 6 THEN 'June' WHEN 7 THEN 'July'  WHEN 8 THEN 'August'
+WHEN 9 THEN 'September' WHEN 10 THEN 'October 'WHEN 11 THEN 'November' 
+WHEN 12 THEN 'December'  ELSE 'Invalid Month'
+END AS month_name,revenue,
+SUM(revenue) OVER (ORDER BY month_no) AS cumulative_revenue
+FROM ( SELECT
+MONTH(o.order_date) AS month_no,
+ROUND(SUM(od.quantity * p.price), 0) AS revenue
+FROM
+order_details AS od
+INNER JOIN pizzas AS p ON od.pizza_id = p.pizza_id
+INNER JOIN orders AS o ON od.order_id = o.order_id
+GROUP BY MONTH(o.order_date)
+) sales;
+
+Case statement + windows + group by + joins + sub query)	
+
+
+
+ 
+
+Q-9  Determine the top 3 most ordered pizza types based on revenue for each pizza category.
+with cte as 
+(
+SELECT 
+    pt.category AS category,
+    pt.name AS pizza,
+    ROUND(SUM(od.quantity * p.price), 0) AS revenue
+FROM
+    pizzas AS p
+        INNER JOIN
+    pizza_types AS pt ON p.pizza_type_id = pt.pizza_type_id
+        INNER JOIN
+    order_details od ON p.pizza_id = od.pizza_id
+GROUP BY pt.category , pt.name
+ORDER BY category)
+select * from 
+(select *,
+row_number() over(partition by category order by revenue desc) as ranking 
+from cte) rankings
+where ranking<=3	
+
+
+
+ 
+
+Q-10 What are the peak order times & top 2 items are being purchase more during that time?
+with cte as
+(SELECT 
+    HOUR(o.order_time) peak_hour,
+    pt.name AS items,
+    SUM(od.quantity) counts
+FROM
+    orders o
+        INNER JOIN
+    order_details od ON o.order_id = od.order_id
+        INNER JOIN
+    pizzas p ON od.pizza_id = p.pizza_id
+        INNER JOIN
+    pizza_types pt ON p.pizza_type_id = pt.pizza_type_id
+GROUP BY HOUR(o.order_time) , pt.name
+ORDER BY counts DESC)
+select items, peak_hour, counts 
+from (select *, row_number()over(partition by peak_hour order by counts desc) as rankings from cte) x
+where rankings<=2 and counts>200;	
+
+
+ 
+Q-11 How does the average order value differ between weekdays and weekends?
+with cte as
+(select flag, round(sum(revenue),0) total_revenue, round((sum(revenue) /count(revenue)),2) average from 
+(SELECT 
+    DAYNAME(o.order_date) AS days,
+    CASE WHEN
+            DAYNAME(o.order_date) IN ('monday' , 'tuesday','wenesday','thursday','friday')
+        THEN  'weekdays'
+        ELSE 'weekends'  END flag,
+    od.quantity * p.price AS revenue
+FROM order_details od
+INNER JOIN orders o ON od.order_id = o.order_id
+INNER JOIN pizzas p ON od.pizza_id = p.pizza_id) x
+group by flag)
+select concat(round((((select average from cte 
+where flag='weekdays')-(select average from cte 
+where flag='weekends'))/(select average from cte 
+where flag='weekdays'))*100,2),'%') diff from cte
+limit 1	
+
+
+
+        
+
+
+                 
+
