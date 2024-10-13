@@ -86,5 +86,4 @@ Provide insights for optimizing product offerings and marketing strategies.
 
 **Common Order Combinations**: Identify the top 10 most common order combinations and their contribution to total sales.
 
-![image](https://github.com/user-attachments/assets/b81982a0-eb80-4cce-a235-1db870a404f5)
 
